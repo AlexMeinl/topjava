@@ -1,5 +1,11 @@
 package ru.javawebinar.topjava.model;
 
+
+import org.hibernate.validator.constraints.NotEmpty;
+import org.hibernate.validator.constraints.Range;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -8,12 +14,46 @@ import java.time.LocalTime;
  * GKislin
  * 11.01.2015.
  */
+@Entity
+@Table(name = "meals")
+@NamedQueries({
+        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.id=:id AND user_id=?1"),
+        @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT m FROM Meal m WHERE user_id=?1"),
+        @NamedQuery(name = Meal.ONE_SORTED, query = "SELECT m FROM Meal m WHERE user_id=?1 AND m.id=?2"),
+        @NamedQuery(name = Meal.BETWEEN, query = "SELECT m FROM Meal m WHERE user_id=?1  AND m.dateTime BETWEEN  ?2 AND ?3 ORDER BY date_time")
+})
 public class Meal extends BaseEntity {
-    private final LocalDateTime dateTime;
 
-    private final String description;
+    public static final String DELETE = "Meal.delete";
+    public static final String ALL_SORTED = "Meal.getAll";
+    public static final String ONE_SORTED = "Meal.get";
+    public static final String BETWEEN = "Meal.Between";
 
-    private final int calories;
+    @Column(name = "date_time", columnDefinition = "timestamp default now()")
+    @NotNull
+    private LocalDateTime dateTime;
+
+    @Column(name = "description", nullable = false)
+    @NotEmpty
+    private String description;
+
+    @Column(name = "calories", nullable = false)
+    @Range(min = 10)
+    @NotNull
+    private int calories;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+
+    public User getUser()
+    {
+        return user;
+    }
+
+    public Meal() {
+    }
 
     public Meal(LocalDateTime dateTime, String description, int calories) {
         this(null, dateTime, description, calories);
@@ -44,6 +84,22 @@ public class Meal extends BaseEntity {
 
     public LocalTime getTime() {
         return dateTime.toLocalTime();
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCalories(int calories) {
+        this.calories = calories;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override
