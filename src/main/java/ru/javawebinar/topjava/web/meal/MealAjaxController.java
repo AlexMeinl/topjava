@@ -1,60 +1,67 @@
 package ru.javawebinar.topjava.web.meal;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import ru.javawebinar.topjava.View;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealWithExceed;
+import ru.javawebinar.topjava.util.ValidationUtil;
 
-import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/ajax/profile/meals", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/ajax/profile/meals")
 public class MealAjaxController extends AbstractMealController {
 
     @Override
-    @GetMapping("/{id}")
-    public Meal get(@PathVariable("id") int id) {
-        return super.get(id);
-    }
-
-    @Override
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") int id) {
-        super.delete(id);
-    }
-
-    @Override
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(View.JsonUI.class)
     public List<MealWithExceed> getAll() {
         return super.getAll();
     }
 
     @Override
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void update(@RequestBody Meal meal, @PathVariable("id") int id) {
-        super.update(meal, id);
+    @GetMapping(value = "/{id}")
+    @JsonView(View.JsonUI.class)
+    public Meal get(@PathVariable("id") int id) {
+        return super.get(id);
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Meal> createWithLocation(@RequestBody Meal meal) {
-        Meal created = super.create(meal);
-
-        URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/ajax/profile/meals" + "/{id}")
-                .buildAndExpand(created.getId()).toUri();
-
-        return ResponseEntity.created(uriOfNewResource).body(created);
+    @Override
+    @DeleteMapping(value = "/{id}")
+    public void delete(@PathVariable("id") int id) {
+        super.delete(id);
     }
 
-    @GetMapping("/filter")
+    @PostMapping
+    public ResponseEntity<String> createOrUpdate(@Validated(View.ValidatedUI.class) Meal meal, BindingResult result) {
+        if (result.hasErrors()) {
+            // TODO change to exception handler
+            return ValidationUtil.getErrorResponse(result);
+        }
+        if (meal.isNew()) {
+            super.create(meal);
+        } else {
+            super.update(meal, meal.getId());
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Override
+    @PostMapping(value = "/filter", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(View.JsonUI.class)
     public List<MealWithExceed> getBetween(
-            @RequestParam(value = "startDate", required = false) LocalDate startDate, @RequestParam(value = "startTime", required = false) LocalTime startTime,
-            @RequestParam(value = "endDate", required = false) LocalDate endDate, @RequestParam(value = "endTime", required = false) LocalTime endTime) {
+            @RequestParam(value = "startDate", required = false) LocalDate startDate,
+            @RequestParam(value = "startTime", required = false) LocalTime startTime,
+            @RequestParam(value = "endDate", required = false) LocalDate endDate,
+            @RequestParam(value = "endTime", required = false) LocalTime endTime) {
         return super.getBetween(startDate, startTime, endDate, endTime);
     }
 }
