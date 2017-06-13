@@ -1,4 +1,5 @@
-<%@page contentType="text/html" pageEncoding="UTF-8" %>
+<%@ page session="false" %>
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 
@@ -9,7 +10,6 @@
 
     <link rel="stylesheet" href="resources/css/style.css">
     <link rel="stylesheet" href="webjars/bootstrap/3.3.7-1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="webjars/datatables/1.10.15/media/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="webjars/datatables/1.10.15/media/css/dataTables.bootstrap.min.css">
     <link rel="shortcut icon" href="resources/images/icon-meal.png">
 
